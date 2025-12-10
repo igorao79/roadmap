@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { BackgroundAnimation } from "@/components/BackgroundAnimation";
+import { SnakeLine } from "@/components/SnakeLine";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,9 +27,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased relative min-h-screen`}
       >
-        {children}
+        {/* Контент приложения */}
+        <div className="relative z-0">
+          {children}
+        </div>
+
+        <BackgroundAnimation />
+        <SnakeLine />
       </body>
     </html>
   );
