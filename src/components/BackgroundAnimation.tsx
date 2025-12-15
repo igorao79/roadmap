@@ -1,15 +1,40 @@
 "use client";
 
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState, useLayoutEffect } from "react";
 
 type DotLottiePlayer = any;
 
 export function BackgroundAnimation() {
+  const [isMobile, setIsMobile] = useState(false);
   const dotLottieRef = useRef<DotLottiePlayer | null>(null);
   const frame = useRef(0);
   const direction = useRef(1);
   const raf = useRef<number | null>(null);
+
+  useLayoutEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 768;
+      console.log('Window width:', window.innerWidth, 'Is mobile:', mobile);
+      setIsMobile(mobile);
+    };
+
+    checkMobile();
+  }, []);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 768;
+      console.log('Resize - Window width:', window.innerWidth, 'Is mobile:', mobile);
+      setIsMobile(mobile);
+    };
+
+    window.addEventListener('resize', checkMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
 
   const tick = () => {
     const anim = dotLottieRef.current;
@@ -54,7 +79,8 @@ export function BackgroundAnimation() {
   return (
     <div className="fixed inset-0 z-50 bg-black pointer-events-none">
       <DotLottieReact
-        src="/images/background.lottie"
+        key={isMobile ? 'mobile' : 'desktop'}
+        src={isMobile ? "/images/backgroundm.lottie" : "/images/background.lottie"}
         autoplay={false} // важно: отключаем внутренний плейбек
         loop={false}
         dotLottieRefCallback={(player) => {

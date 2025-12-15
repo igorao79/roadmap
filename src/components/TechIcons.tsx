@@ -20,7 +20,7 @@ interface TechIconsProps {
   setHoveredMarker: (index: number | null) => void;
   setIsLineVisible: (visible: boolean) => void;
   animationCounter: number;
-  setAnimationCounter: (counter: number) => void;
+  setAnimationCounter: (counter: number | ((prev: number) => number)) => void;
   deviconData: Record<string, string>;
   onIconClick: (techName: string) => void;
 }
@@ -47,25 +47,54 @@ export function TechIcons({
     { className: 'devicon-nextjs-plain colored', name: 'Next.js' }
   ];
 
-  const amplitude = 40; // амплитуда изгиба
-  const frequency = 0.015; // частота волны
-  const segments = 60; // количество сегментов линии
+  const isMobile = dimensions.width < 768; // Проверяем, является ли устройство мобильным
 
-  // Создаем статичную волнообразную линию
-  const points = [];
-  for (let i = 0; i <= segments; i++) {
-    const x = (dimensions.width / segments) * i;
-    const y = Math.sin(x * frequency) * amplitude + dimensions.height / 2;
-    points.push(`${x},${y}`);
-  }
+  let amplitude: number;
+  let frequency: number;
+  let segments: number;
+  let points: string[] = [];
+  let markers: Array<{ x: number; y: number }> = [];
 
-  // Создаем чекпоинты каждые 5% ширины (5%, 10%, 15%, ..., 95%)
-  const markers: Array<{ x: number; y: number }> = [];
-  for (let i = 1; i <= 19; i++) { // 5%, 10%, 15%, ..., 95%
-    const percent = i * 5; // 5, 10, 15, 20, ..., 95
-    const x = (dimensions.width * percent) / 100;
-    const y = Math.sin(x * frequency) * amplitude + dimensions.height / 2;
-    markers.push({ x, y });
+  if (isMobile) {
+    // Вертикальная линия по центру для мобильных устройств
+    amplitude = 20; // меньшая амплитуда для мобильных
+    frequency = 0.02; // частота волны
+    segments = 40; // количество сегментов линии
+
+    // Создаем вертикальную волнообразную линию
+    for (let i = 0; i <= segments; i++) {
+      const y = (dimensions.height / segments) * i;
+      const x = Math.sin(y * frequency) * amplitude + dimensions.width / 2;
+      points.push(`${x},${y}`);
+    }
+
+    // Создаем чекпоинты для 9 технологий (снизу вверх, каждые ~8% высоты)
+    for (let i = 0; i < 9; i++) { // 92%, 84%, 76%, ..., 28%
+      const percent = 100 - (i + 1) * 8; // 92, 84, 76, ..., 28
+      const y = (dimensions.height * percent) / 100;
+      const x = Math.sin(y * frequency) * amplitude + dimensions.width / 2;
+      markers.push({ x, y });
+    }
+  } else {
+    // Горизонтальная линия для десктопных устройств
+    amplitude = 40; // амплитуда изгиба
+    frequency = 0.015; // частота волны
+    segments = 60; // количество сегментов линии
+
+    // Создаем статичную волнообразную линию
+    for (let i = 0; i <= segments; i++) {
+      const x = (dimensions.width / segments) * i;
+      const y = Math.sin(x * frequency) * amplitude + dimensions.height / 2;
+      points.push(`${x},${y}`);
+    }
+
+    // Создаем чекпоинты для 9 технологий (каждые ~4% ширины)
+    for (let i = 0; i < 9; i++) { // 4%, 8%, 12%, ..., 36%
+      const percent = (i + 1) * 4; // 4, 8, 12, ..., 36
+      const x = (dimensions.width * percent) / 100;
+      const y = Math.sin(x * frequency) * amplitude + dimensions.height / 2;
+      markers.push({ x, y });
+    }
   }
 
   // Позиции для иконок над метками
@@ -78,23 +107,40 @@ export function TechIcons({
     isPeak: boolean;
   }> = [];
 
-  // Размещаем иконки над метками: над-под-над-под чередуясь
+  // Размещаем иконки рядом с метками
   languages.forEach((lang, index) => {
     if (index >= markers.length) return; // Не больше меток
 
     const marker = markers[index];
-    const isAbove = index % 2 === 0; // Чередуем: над, под, над, под...
 
-    const offsetDistance = isAbove ? 90 : 30; // Расстояние от линии (еще больше поднял верхние иконки)
-    const finalY = isAbove ? marker.y - offsetDistance : marker.y + offsetDistance;
+    if (isMobile) {
+      // Для мобильных: чередуем слева-справа от вертикальной линии
+      const isLeft = index % 2 === 0; // Чередуем: слева, справа, слева, справа...
+      const offsetX = isLeft ? -80 : 40; // Смещение по X
+      const finalX = marker.x + offsetX;
+      const finalY = marker.y - 24; // Центрируем по Y
 
-    iconPositions.push({
-      ...lang,
-      x: marker.x - 24, // центрируем иконку
-      y: finalY,
-      key: `marker-${index}`,
-      isPeak: isAbove
-    });
+      iconPositions.push({
+        ...lang,
+        x: finalX,
+        y: finalY,
+        key: `marker-${index}`,
+        isPeak: !isLeft // isPeak теперь означает "справа"
+      });
+    } else {
+      // Для десктопа: над-под-над-под чередуясь
+      const isAbove = index % 2 === 0; // Чередуем: над, под, над, под...
+      const offsetDistance = isAbove ? 90 : 30; // Расстояние от линии
+      const finalY = isAbove ? marker.y - offsetDistance : marker.y + offsetDistance;
+
+      iconPositions.push({
+        ...lang,
+        x: marker.x - 24, // центрируем иконку
+        y: finalY,
+        key: `marker-${index}`,
+        isPeak: isAbove
+      });
+    }
   });
 
   return (
@@ -106,16 +152,19 @@ export function TechIcons({
         const borderColor = isOnGreenSide ? '#3ddac1' : 'rgba(255,255,255,0.2)';
         const borderWidth = isOnGreenSide ? '2px' : '1px';
 
+        const iconSize = isMobile ? 48 : 64; // Меньше размер на мобильных
+        const iconFontSize = isMobile ? 32 : 42; // Меньше шрифт на мобильных
+
         return (
           <div
             key={icon.key}
             className="absolute flex items-center justify-center group cursor-pointer transition-all duration-300 pointer-events-auto"
             style={{
-              left: `${icon.x - 8}px`, // Корректировка центрирования
+              left: `${icon.x - (isMobile ? 6 : 8)}px`, // Корректировка центрирования для мобильных
               top: `${icon.y}px`,
               zIndex: 70,
-              width: '64px',
-              height: '64px',
+              width: `${iconSize}px`,
+              height: `${iconSize}px`,
               borderRadius: '50%',
               background: 'rgba(255,255,255,0.1)',
               backdropFilter: 'blur(10px)',
@@ -129,7 +178,6 @@ export function TechIcons({
               if (!e.currentTarget) return;
 
               // Активируем линию прогресса для этого чекпоинта
-              setAnimationCounter(prev => prev + 1);
               setIsLineVisible(true);
               setHoveredMarker(index);
 
@@ -169,21 +217,9 @@ export function TechIcons({
             onMouseLeave={(e) => {
               if (!e.currentTarget) return;
 
-              // Начинаем плавное исчезновение линии
-              const lineElement = document.querySelector('.progress-line');
-              if (lineElement) {
-                lineElement.classList.add('fade-out');
-                setTimeout(() => {
-                  setHoveredMarker(null);
-                  setIsLineVisible(false);
-                  if (lineElement) {
-                    lineElement.classList.remove('fade-out');
-                  }
-                }, 500);
-              } else {
-                setHoveredMarker(null);
-                setIsLineVisible(false);
-              }
+              // Скрываем линию сразу
+              setHoveredMarker(null);
+              setIsLineVisible(false);
 
               const iconElement = e.currentTarget.querySelector('i') as HTMLElement;
               const tooltip = e.currentTarget.querySelector('.tooltip') as HTMLElement;
@@ -201,7 +237,7 @@ export function TechIcons({
             <i
               className={icon.className}
               style={{
-                fontSize: '42px',
+                fontSize: `${iconFontSize}px`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -227,3 +263,6 @@ export function TechIcons({
     </>
   );
 }
+
+
+
