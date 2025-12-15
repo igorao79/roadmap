@@ -77,7 +77,7 @@ export function BackgroundAnimation() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 bg-black pointer-events-none">
+    <div className="fixed inset-0 z-40 bg-black pointer-events-none">
       <DotLottieReact
         key={isMobile ? 'mobile' : 'desktop'}
         src={isMobile ? "/images/backgroundm.lottie" : "/images/background.lottie"}
@@ -95,7 +95,7 @@ export function BackgroundAnimation() {
           position: "fixed",
           top: 0,
           left: 0,
-          zIndex: 50,
+          zIndex: 40,
           transform: "scale(1.3)",
         }}
       />
