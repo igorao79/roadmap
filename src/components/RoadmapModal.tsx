@@ -30,6 +30,56 @@ export function RoadmapModal({ isOpen, selectedTech, onClose }: RoadmapModalProp
     isFullscreen: false
   });
 
+  // Управление scrollbar при открытии/закрытии модального окна
+  useEffect(() => {
+    if (isOpen) {
+      // Скрываем scrollbar когда модальное окно открыто
+      document.body.style.overflow = 'hidden';
+      document.body.style.overscrollBehavior = 'none';
+      document.documentElement.style.overflow = 'hidden';
+      document.documentElement.style.overscrollBehavior = 'none';
+
+      // Компенсируем исчезновение scrollbar
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+
+      // Временно скрываем внутренние скроллы только на время анимации
+      const modalContent = document.querySelector('.modal-content-scroll');
+      if (modalContent) {
+        (modalContent as HTMLElement).style.overflow = 'hidden';
+      }
+
+      // Восстанавливаем внутренний скролл после завершения анимации открытия
+      setTimeout(() => {
+        const modalContent = document.querySelector('.modal-content-scroll');
+        if (modalContent) {
+          (modalContent as HTMLElement).style.overflow = '';
+        }
+      }, 600); // После завершения анимации открытия
+    } else {
+      // Восстанавливаем scrollbar когда модальное окно закрыто
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehavior = '';
+      document.body.style.paddingRight = '';
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.overscrollBehavior = '';
+    }
+
+    // Очистка при размонтировании
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehavior = '';
+      document.body.style.paddingRight = '';
+      document.documentElement.style.overflow = '';
+      document.documentElement.style.overscrollBehavior = '';
+
+      const modalContent = document.querySelector('.modal-content-scroll');
+      if (modalContent) {
+        (modalContent as HTMLElement).style.overflow = '';
+      }
+    };
+  }, [isOpen]);
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useLayoutEffect(() => {
     if (isOpen) {
@@ -141,7 +191,14 @@ export function RoadmapModal({ isOpen, selectedTech, onClose }: RoadmapModalProp
           </div>
 
           {/* Содержимое дорожной карты с прокруткой */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div
+            className="flex-1 overflow-y-auto px-0 py-4 modal-content-scroll"
+            style={{
+              overscrollBehavior: 'contain',
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'rgba(61, 218, 193, 0.3) transparent'
+            }}
+          >
             <RoadmapContent
               tech={selectedTech}
               selectedCard={modalState.selectedCard}
@@ -204,7 +261,7 @@ const RoadmapContent = ({
     return (
       <div className="space-y-6">
         {content.map((section, index) => (
-          <div key={index}>
+          <div key={index} className="w-full">
             <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
               {section.title}
             </h4>
@@ -262,7 +319,7 @@ const RoadmapContent = ({
     if (!cardData) return null;
 
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="w-full">
         <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg p-8 shadow-lg border border-gray-200 dark:border-gray-600">
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             {cardData.title}

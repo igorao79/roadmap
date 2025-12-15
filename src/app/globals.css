@@ -5,6 +5,27 @@
   --foreground: #171717;
 }
 
+/* Mobile status bar colors */
+@supports (-webkit-appearance: none) {
+  /* iOS Safari */
+  .status-bar-ios {
+    -webkit-status-bar-style: default;
+  }
+}
+
+/* Android Chrome theme color */
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

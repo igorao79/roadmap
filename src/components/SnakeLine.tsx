@@ -270,10 +270,10 @@ export function SnakeLine() {
             <span className="text-white">Frontend Roadmap</span>
           ) : (
             <>
-              <span className="text-[#3ddac1]">Fronten</span>
-              <span className="text-white">d</span>
-              {' '}
-              <span className="text-white">Roadmap</span>
+          <span className="text-[#3ddac1]">Fronten</span>
+          <span className="text-white">d</span>
+          {' '}
+          <span className="text-white">Roadmap</span>
             </>
           )}
         </h1>
@@ -284,9 +284,9 @@ export function SnakeLine() {
             <span className="text-white">by igorao79</span>
           ) : (
             <>
-              <span className="text-[#3ddac1]">b</span>
-              <span className="text-white">y</span>{' '}
-              <span className="text-white">igorao79</span>
+          <span className="text-[#3ddac1]">b</span>
+          <span className="text-white">y</span>{' '}
+          <span className="text-white">igorao79</span>
             </>
           )}
         </p>

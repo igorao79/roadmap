@@ -218,8 +218,8 @@ export function TechIcons({
               if (!e.currentTarget) return;
 
               // Скрываем линию сразу
-              setHoveredMarker(null);
-              setIsLineVisible(false);
+                setHoveredMarker(null);
+                setIsLineVisible(false);
 
               const iconElement = e.currentTarget.querySelector('i') as HTMLElement;
               const tooltip = e.currentTarget.querySelector('.tooltip') as HTMLElement;
