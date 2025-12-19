@@ -320,19 +320,20 @@ const RoadmapContent = ({
 
     return (
       <div className="w-full">
-        <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg p-8 shadow-lg border border-gray-200 dark:border-gray-600">
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            {cardData.title}
-          </h3>
-
-          <div className="mb-6">
+        <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg p-8 shadow-lg border border-gray-200 dark:border-gray-600 relative">
+          {/* Уровень и продолжительность в правом верхнем углу */}
+          <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
             <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded text-sm font-medium">
               {cardData.level}
             </span>
-            <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1 rounded text-sm font-medium ml-2">
+            <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1 rounded text-sm font-medium">
               {cardData.duration}
             </span>
           </div>
+
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 pr-32">
+            {cardData.title}
+          </h3>
 
           <div className="prose prose-gray dark:prose-invert max-w-none">
             <p className="text-gray-600 dark:text-gray-300 mb-6 text-lg leading-relaxed">
@@ -396,77 +397,98 @@ const RoadmapContent = ({
       {/* Блоки дорожной карты */}
       <div className="relative z-10">
         {rows.map((row, rowIndex) => (
-          <div key={`row-${rowIndex}`} className="flex justify-center items-center mb-12 relative">
-            {/* Вертикальная линия между рядами */}
-            {rowIndex > 0 && (
-              <div
-                className="absolute left-1/2 top-[-40px] w-0.5 h-10 bg-[#3ddac1] opacity-90 transform -translate-x-1/2 rounded-full"
-                style={{ zIndex: 1 }}
-              />
-            )}
-            {row.map((step, colIndex) => {
-              const blockIndex = rowIndex * 3 + colIndex;
-              const position = getBlockPosition(rowIndex, colIndex, row.length);
+          <div key={`row-${rowIndex}`} className="mb-3 relative">
 
-              return (
-                <React.Fragment key={blockIndex}>
-                  <div
-                    className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 flex flex-col cursor-pointer"
-                    style={{
-                      width: `${position.width}px`,
-                      height: `${position.height}px`,
-                      flexShrink: 0
-                    }}
-                    data-aos={aosAnimations[blockIndex % aosAnimations.length]}
-                    data-aos-delay={blockIndex * 100}
-                    data-aos-duration="600"
-                    data-aos-easing="ease-out-cubic"
-                    onClick={() => {
-                      setModalState(prev => ({ ...prev, isFullscreen: true }));
-                      onCardSelect(step.title);
-                    }}
-                  >
-                    {/* Номер блока */}
-                    <div className="flex justify-between items-start p-3">
-                      <div className="w-6 h-6 bg-[#3ddac1] rounded-full flex items-center justify-center text-white text-sm font-bold">
-                        {blockIndex + 1}
+            {/* Карточки в ряду */}
+            <div className="flex justify-center items-center mb-6">
+              {(rowIndex === 1 ? [row[2], row[1], row[0]] : row).map((step, colIndex) => {
+                const blockIndex = rowIndex === 1
+                  ? (colIndex === 0 ? 5 : colIndex === 1 ? 4 : 3)  // Для перевернутого ряда: 6,5,4
+                  : rowIndex * 3 + colIndex;
+                const position = getBlockPosition(rowIndex, colIndex, row.length);
+
+                return (
+                  <React.Fragment key={blockIndex}>
+                    <div
+                      className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 flex flex-col cursor-pointer relative"
+                      style={{
+                        width: `${position.width}px`,
+                        height: `${position.height}px`,
+                        flexShrink: 0
+                      }}
+                      data-aos={aosAnimations[blockIndex % aosAnimations.length]}
+                      data-aos-delay={blockIndex * 100}
+                      data-aos-duration="600"
+                      data-aos-easing="ease-out-cubic"
+                      onClick={() => {
+                        setModalState(prev => ({ ...prev, isFullscreen: true }));
+                        onCardSelect(step.title);
+                      }}
+                    >
+                      {/* Номер блока */}
+                      <div className="p-3">
+                        <div className="w-6 h-6 bg-[#3ddac1] rounded-full flex items-center justify-center text-white text-sm font-bold">
+                          {blockIndex + 1}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Содержимое блока */}
-                    <div className="flex-1 px-3 pb-3">
-                      <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 line-clamp-2">
-                        {step.title}
-                      </h4>
-                      <p className="text-xs text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">
-                        {step.description}
-                      </p>
-                      <div className="flex flex-col gap-1">
-                        <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-1.5 py-0.5 rounded text-xs text-center">
+                      {/* Уровень и продолжительность в правом верхнем углу (абсолютное позиционирование) */}
+                      <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
+                        <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-1.5 py-0.5 rounded text-xs">
                           {step.level}
                         </span>
-                        <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-1.5 py-0.5 rounded text-xs text-center">
+                        <span className="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-1.5 py-0.5 rounded text-xs">
                           {step.duration}
                         </span>
                       </div>
-                    </div>
-                  </div>
-                  {/* Простая стрелка между карточками */}
-                  {colIndex < row.length - 1 && (
-                    <div className="flex items-center justify-center mx-6">
-                      <div
-                        className="text-[#3ddac1] text-2xl font-bold opacity-80"
-                        style={{
-                          animation: 'arrowPulse 2s ease-in-out infinite'
-                        }}
-                      >
-                        →
+
+                      {/* Содержимое блока */}
+                      <div className="flex-1 px-3 pb-3">
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 line-clamp-2">
+                          {step.title}
+                        </h4>
+                        <p className="text-xs text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">
+                          {step.description}
+                        </p>
                       </div>
                     </div>
-                  )}
-                </React.Fragment>
-              );
-            })}
+
+                    {/* Простая стрелка между карточками */}
+                    {colIndex < row.length - 1 && (
+                      <div className="flex items-center justify-center mx-6">
+                        <div
+                          className="text-[#3ddac1] text-2xl font-bold"
+                          data-aos="zoom-out"
+                          data-aos-delay={(rowIndex * 3 + colIndex) * 100 + 300}
+                          data-aos-duration="400"
+                          data-aos-easing="ease-out-cubic"
+                        >
+                          {rowIndex % 2 === 0 ? '→' : '←'}
+                        </div>
+                      </div>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+
+            {/* Вертикальная стрелка вниз под третьей карточкой */}
+            {(rowIndex * 3 + 2) < roadmapSteps.length - 1 && (
+              <div className="flex justify-center mb-1">
+                <div
+                  className="text-[#3ddac1] text-3xl font-bold"
+                  style={{
+                    marginLeft: rowIndex === 1 ? '-66%' : '63%'
+                  }}
+                  data-aos="zoom-out"
+                  data-aos-delay={(rowIndex * 3 + 2) * 100 + 300}
+                  data-aos-duration="400"
+                  data-aos-easing="ease-out-cubic"
+                >
+                  ↓
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
